@@ -1,0 +1,23 @@
+1. pip install jupyter
+
+2. 生成配置文件：
+jupyter notebook --generate-config
+生成的配置文件位于 ~/.jupyter/jupyter_notebook_config.py。
+
+3. 生成密码
+python -c "import IPython;print(IPython.lib.passwd())"
+类似sha1:991ec9cd2f39:522598e19891bab1ecaa3a9072e71f45811af9f2
+
+4. 编辑配置文件：
+vim ~/jupyter/jupyter_notebook_config.py
+c = get_config()
+c.NotebookApp.password = u'sha1:991ec9cd2f39:522598e19891bab1ecaa3a9072e71f45811af9f2' --上一步生成的密码
+c.NotebookApp.ip = '*'
+c.NotebookApp.port = 6789
+c.NotebookApp.open_browser = False
+
+5. 再次启动Notebook：
+jupyter notebook
+
+6. 使用浏览器访问：https://your_domain_or_IP:6789
+
