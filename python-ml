@@ -84,3 +84,8 @@ xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
 
 
+6. 支持向量机
+
+from sklearn import svm
+clf = svm.SVC(kernel='linear')
+clf.fit(X, Y)
