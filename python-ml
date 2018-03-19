@@ -1,0 +1,86 @@
+0. 数据整理
+
+归一化
+
+from sklearn.feature_extraction.text import CountVectorizer
+vectorizer = CountVectorizer(min_df=1)
+x=vectorizer.fit_transform(x)
+x=x.toarray()
+
+交叉验证
+
+from sklearn import cross_validation
+cross_validation.cross_val_score(clf,x,y,n_jobs=-1,cv=10)
+
+可视化
+import matplotlib.pyplot as plt
+Z = Z.reshape(xx.shape)
+plt.figure(1, figsize=(4, 3))
+plt.pcolormesh(xx, yy, Z, cmap=plt.cm.Paired)
+plt.scatter(X[:, 0], X[:, 1], c=Y, edgecolors='k', cmap=plt.cm.Paired)
+plt.xlabel('Sepal length')
+plt.ylabel('Sepal width')
+plt.xlim(xx.min(), xx.max())
+plt.ylim(yy.min(), yy.max())
+plt.xticks(())
+plt.yticks(())
+plt.show()
+
+1. K近邻
+
+from sklearn.neighbors import KNeighborsClassifier
+x = [.....]
+y = [...]
+neigh = KNeighborsClassifier(n_neighbors=3)
+neigh.fit(x,y)
+
+
+2. 决策树
+
+from sklearn import tree
+import pydotplus
+x = [.....]
+y = [...]
+clf = tree.DecisionTreeClassifier()
+clf = clf.fit(x,y)
+dot_data = tree.export_graphviz(clf, out_file=None)
+graph = pydotplus.graph_from_dot_data(dot_data)
+graph.write_pdf("/path/to/xxx.pdf")
+
+
+3. 随机森林 （判决性能优于决策树）
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import cross_validation
+x = [.....]
+y = [...]
+clf2 = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
+score=cross_validation.cross_val_score(clf2, x, y, n_jobs=-1, cv=10)
+
+
+4. 朴素贝叶斯
+
+from sklearn.naive_bayes import GaussianNB
+x_train=[.......]
+y_train=[...]
+x_test=[.......]
+y_test=[...]
+clf = GaussianNB().fit(x_train, y_train)
+y_predict_nb=clf.predict(x_test)
+score=np.mean(y_test==y_predict_nb)*100
+print "NB %d" % score
+
+
+5. 逻辑回归
+
+import numpy as np
+from sklearn import linear_model
+logreg = linear_model.LogisticRegression(C=1e5)
+logreg.fit(X, Y)
+h = .02
+x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
+
+
