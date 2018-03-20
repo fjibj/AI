@@ -89,3 +89,149 @@ Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
 from sklearn import svm
 clf = svm.SVC(kernel='linear')
 clf.fit(X, Y)
+
+
+7. K-Means
+
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+n_samples = 1500
+random_state = 170
+X, y = make_blobs(n_samples=n_samples, random_state=random_state)
+y_pred = KMeans(n_clusters=3, random_state=random_state).fit_predict(X)
+
+
+8. DBSCAN （全自动化聚类）
+
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+from sklearn.datasets.samples_generator import make_blobs
+from sklearn.preprocessing import StandardScaler
+centers = [[1, 1], [-1, -1], [1, -1]]
+X, labels_true = make_blobs(n_samples=750, centers=centers, cluster_std=0.4, random_state=0)
+X = StandardScaler().fit_transform(X)
+db = DBSCAN(eps=0.3, min_samples=10).fit(X)
+
+
+9. Apriori
+
+from apriori import apriori
+from apriori import generateRules
+myDat = [ [ 1, 3, 4 ], [ 2, 3, 5 ], [ 1, 2, 3, 5 ], [ 2, 5 ] ]
+L, suppData = apriori(myDat, 0.5)
+rules = generateRules(L, suppData, minConf=0.7)
+
+
+10. FP-growth (pip install pyfpgrowth)
+
+import pyfpgrowth
+transactions = [[1, 2, 5],
+                [2, 4],
+                [2, 3],
+                [1, 2, 4],
+                [1, 3],
+                [2, 3],
+                [1, 3],
+                [1, 2, 3, 5],
+                [1, 2, 3]]
+patterns = pyfpgrowth.find_frequent_patterns(transactions, 2)
+rules = pyfpgrowth.generate_association_rules(patterns, 0.7)
+
+
+11. 隐式马尔可夫 （pip install -U --user hmmlearn）
+
+from hmmlearn import hmm
+startprob = np.array([0.6, 0.3, 0.1, 0.0])
+# The transition matrix, note that there are no transitions possible
+# between component 1 and 3
+transmat = np.array([[0.7, 0.2, 0.0, 0.1],
+                     [0.3, 0.5, 0.2, 0.0],
+                     [0.0, 0.3, 0.5, 0.2],
+                     [0.2, 0.0, 0.2, 0.6]])
+# The means of each component
+means = np.array([[0.0,  0.0],
+                  [0.0, 11.0],
+                  [9.0, 10.0],
+                  [11.0, -1.0]])
+# The covariance of each component
+covars = .5 * np.tile(np.identity(2), (4, 1, 1))
+# Build an HMM instance and set parameters
+model = hmm.GaussianHMM(n_components=4, covariance_type="full")
+# Instead of fitting it from the data, we directly set the estimated
+# parameters, the means and covariance of the components
+model.startprob_ = startprob
+model.transmat_ = transmat
+model.means_ = means
+model.covars_ = covars
+# Generate samples
+X, Z = model.sample(500)
+
+
+12. 图
+
+安装neo4j: https://neo4j.com/
+sdk: pip install neo4j-driver
+
+from neo4j.v1 import GraphDatabase, basic_auth
+driver = GraphDatabase.driver("bolt://localhost", auth=basic_auth("neo4j", "maidou"))
+session = driver.session()
+sql = "......."
+session.run(sql)
+
+
+13. 知识图谱
+
+import networkx as nx
+G = nx.Graph()
+G.add_node("u1")
+G.add_node("u2")
+G.add_edge("u1", "1.1.1.1")
+G.add_edge("u2", "1.1.1.1")
+nx.draw(G,with_labels=True,node_size=600)
+
+
+14. 神经网络
+
+from sklearn.neural_network import MLPClassifier
+mlp = MLPClassifier(hidden_layer_sizes=(50,), max_iter=10, alpha=1e-4,
+                    solver='sgd', verbose=10, tol=1e-4, random_state=1,
+                    learning_rate_init=.1)
+mlp.fit(X_train, y_train)
+
+
+15. 多层感知机 （tensorflow）
+
+import tensorflow as tf
+training_data, valid_data, test_dat=load_data()
+x_training_data,y_training_data=training_data
+x1,y1=test_dat
+y_training_data=get_one_hot(y_training_data)
+y1=get_one_hot(y1)
+batch_size=100
+x = tf.placeholder("float", [None, 784])
+W = tf.Variable(tf.zeros([784,10]))
+b = tf.Variable(tf.zeros([10]))
+y = tf.nn.softmax(tf.matmul(x,W) + b)
+y_ = tf.placeholder("float", [None,10])
+cross_entropy = -tf.reduce_sum(y_*tf.log(y))
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+sess = tf.Session()
+sess.run(init)
+for i in range(int(len(x_training_data)/batch_size)):
+    batch_xs=x_training_data[(i*batch_size):((i+1)*batch_size)]
+    batch_ys=y_training_data[(i*batch_size):((i+1)*batch_size)]
+    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(sess.run(accuracy, feed_dict={x: x1, y_: y1}))
+或
+x = tf.placeholder(tf.float32, [None, in_units])
+keep_prob=tf.placeholder(tf.float32)
+hidden1=tf.nn.relu(tf.matmul(x,W1)+b1)
+hidden1_drop=tf.nn.dropout(hidden1,keep_prob)
+y = tf.nn.softmax(tf.matmul(hidden1_drop,W2) + b2)
+y_ = tf.placeholder(tf.float32, [None,10])
+
+
+16. DNN
