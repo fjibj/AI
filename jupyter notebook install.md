@@ -24,6 +24,5 @@ jupyter notebook
 
 6. 使用浏览器访问：https://your_domain_or_IP:6789(如果是virtualbox且采用NAT网络模式，则需要设置端口转发：设置->网络->网卡->高级->端口转发）
 
-
-
+<img src="jupyter-notebook.jpg">
 
