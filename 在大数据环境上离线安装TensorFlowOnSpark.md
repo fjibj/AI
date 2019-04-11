@@ -47,15 +47,25 @@ mkdir -p tfspark/tf-package
 
 5.  编译安装Python
 cd /home/bdapp/tfspark	#进入前面创建的tfspark目录
+
 mkdir Python
+
 export PYTHON_ROOT=/home/bdapp/tfspark/Python	#即刚刚创建的Python目录的绝对路径
+
 tar xvzf Python-3.6.8.tgz
+
 cd Python-3.6.8
+
 ./configure --prefix="${PYTHON_ROOT}" --enable-unicode=ucs4
+
 make
+
 make install
+
 cd ../Python/bin
+
 ln -s python3.6 python
+
 ln -s pip3 pip
 
 5. 在每个节点安装glibc-2.17：
