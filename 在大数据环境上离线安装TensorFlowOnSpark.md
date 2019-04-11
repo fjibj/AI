@@ -7,7 +7,7 @@
 2. 各节点上已安装spark2.4.0
 3. 准备好Python安装包
 Python-3.6.8.tgz
-Tensorflow依赖包，如下：https://pypi.python.org/pypi/​pypi.python.org
+Tensorflow依赖包，如下：https://pypi.org/
 
 absl-py-0.7.1.tar.gz                            
 astor-0.7.1-py2.py3-none-any.whl                
