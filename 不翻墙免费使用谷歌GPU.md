@@ -27,36 +27,7 @@ tf.test.gpu_device_name()
 from tensorflow.python.client import device_lib
 device_lib.list_local_devices()
 
-!nvidia-smi
-Thu Nov 21 11:04:50 2019       
-+-----------------------------------------------------------------------------+
-
-| NVIDIA-SMI 430.50       Driver Version: 418.67       CUDA Version: 10.1     |
-
-|-------------------------------+----------------------+----------------------+
-
-| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-
-| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-
-|===============================+======================+======================|
-
-|   0  Tesla K80           Off  | 00000000:00:04.0 Off |                    0 |
-
-| N/A   41C    P0    58W / 149W |     69MiB / 11441MiB |      0%      Default |
-
-+-------------------------------+----------------------+----------------------+
-
-                                                                               
-+-----------------------------------------------------------------------------+
-
-| Processes:                                                       GPU Memory |
-
-|  GPU       PID   Type   Process name                             Usage      |
-
-|=============================================================================|
-
-+-----------------------------------------------------------------------------+
+!nvidia-smi（配置好象还不错）
 
 5. 查看内存信息
 !cat /proc/meminfo
