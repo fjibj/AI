@@ -21,10 +21,13 @@ http://www.sohu.com/a/332938797_787107
 执行!find . -name test0.ipynb， 其中test0.ipynb是你当前正在编辑的文件
 
 4. 查看GPU信息
+
 import tensorflow as tf
+
 tf.test.gpu_device_name()
 
 from tensorflow.python.client import device_lib
+
 device_lib.list_local_devices()
 
 !nvidia-smi（配置好象还不错）
