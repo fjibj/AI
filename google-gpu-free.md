@@ -33,4 +33,7 @@ device_lib.list_local_devices()
 !nvidia-smi（配置好象还不错）
 
 5. 查看内存信息
+
 !cat /proc/meminfo
+
+6. 每新建一个xxxx.ipynb文件，设置好“修改”->"笔记本设置”->“硬件加速器”，选择GPU后，就拥有了一个12G内存、300G存储和GPU（>12G显存,Tesla系统）的环境，真的很爽！
