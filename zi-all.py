@@ -34,7 +34,11 @@ def writeIn(word_dict, tf, ta, tc, isout=False, isnum=True):
                 ws['C%d' % i].font = font
                 ws['D%d' % i].fill = fill
                 if isnum:
-                    ws[tc + '%d' % i].value = -int(v) if isout else int(v) 
+                    k = ws[tc + '%d' % i].value
+                    if k: #如果单元格原来有值需要做累加
+                        ws[tc + '%d' % i].value = -int(v)+k if isout else int(v)+k
+                    else:
+                        ws[tc + '%d' % i].value = -int(v) if isout else int(v) 
                 else:
                     ws[tc + '%d' % i].value = v
                 b = 1
@@ -99,7 +103,7 @@ def getAdd(f, la, sl, el, sc, ec, st):
     print('获得补货数据,spended '+str((e - s).seconds)+' seconds.')
     return word_dict
 
-# 统计铅字售出字频写入统计表
+# 统计售出字频写入统计表
 # f: 读入的文本文件
 # tf: 目标EXCEL文件
 # ta: 目标EXCEL文件标签页名
@@ -127,6 +131,7 @@ def getOut(f):
                     word_dict[char] += 1
 
         print(len(word_dict))
+        print(word_dict)
         e = datetime.datetime.now()
         print('获得售出数据,spended '+str((e - s).seconds)+' seconds.')
         return word_dict
@@ -211,19 +216,19 @@ def writeChenliepan(tf,ta,tc):
 
 starttime = datetime.datetime.now()
 # 铅字补货写入统计表
-writeIn(getAdd('补货单20191105南京科举博物馆.xlsx', '铅字补字表', 7, 100, 'A', 'J', 2), '1_字盘统计表.xlsx', '字盘统计表', 'K')
+#writeIn(getAdd('补货单20191105南京科举博物馆.xlsx', '铅字补字表', 7, 100, 'A', 'J', 2), '1_字盘统计表.xlsx', '字盘统计表', 'K')
 
 
 # 统计铅字售出字频写入统计表
-writeIn(getOut('11月售出.txt'), '1_字盘统计表.xlsx', '字盘统计表', 'J', isout=True)
+writeIn(getOut('11月售出2.txt'), '1_字盘统计表.xlsx', '字盘统计表', 'J', isout=True)
 
 
 # 写统计表库存盘
-writeIn(getKucunpan('11月库存盘.txt','：'),'1_字盘统计表.xlsx','字盘统计表','A', isnum=False)
+#writeIn(getKucunpan('11月库存盘.txt','：'),'1_字盘统计表.xlsx','字盘统计表','A', isnum=False)
 
 
 # 全量刷新统计表陈列盘
-writeChenliepan('1_字盘统计表.xlsx','字盘统计表','B')
+#writeChenliepan('1_字盘统计表.xlsx','字盘统计表','B')
 
 
 # 复制生成带时间戳的目标文件
