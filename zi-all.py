@@ -1,17 +1,127 @@
 # coding:utf-8
+import datetime
+import os
+import os.path
+import re
+import shutil
+import time
+from urllib import request, parse
+
 from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.styles import PatternFill
-import os,shutil
-import os.path
-import time
-import sys
-import re
-from urllib import request, parse
-import datetime
 
+# 获得汉字剩余字典
+# f: 剩余TXT文件（汉字,剩余数）
+# sp: 分隔符
+def getMainder(f, sp):
+    word_dict = {}
+    with open(f,"r",encoding='UTF-8') as fileIn:
+        for line in fileIn:
+            s = line.split(sp)
+            p = s[0].strip()
+            if word_dict.__contains__(p):
+                word_dict[p] +=int(s[1].strip())
+                print(p)
+            else:
+                word_dict[p] =int(s[1].strip())
+    print(len(word_dict))
+    return word_dict
 
-# 写入统计表EXCEL文件
+# 根据剩余字典反算售出写入金字统计表EXCEL文件
+# word_dict: （汉字,剩余数）字典
+# tf: 目标EXCEL文件
+# ta: 目标EXCEL文件标签页名
+# tc: 目标列名（如J），注：只能写入一列
+# th: 汉字列
+# tk: 库存列
+def writeReverse(word_dict,tf,ta,tc,th,tk):
+    s = datetime.datetime.now()
+    # 写入字盘
+    wb2=load_workbook(tf, data_only=True)  #读取公式值，只读不保存
+    ws2 = wb2[ta]
+    wb=load_workbook(tf)
+    ws = wb[ta]
+    maxrow = ws.max_row
+    print("maxrow=%d" % maxrow)
+    for k,v in word_dict.items():
+        b = 0	#是否找到
+        for i in range(2,maxrow+1):
+            c = ws[th+'%d' % i].value
+            if c.strip() == k:
+                # 从ws2取出原库存数
+                #print(tk, i, ws2[tk+'%d' % i].value)
+                p = int(ws2[tk+'%d' % i].value)
+                # 写入售出数（=新库存-原库存）
+                ws[tc+'%d' % i].value = int(v) - p
+                b = 1
+                break
+        if b==0:	#未找到，添加到最后一行
+            ws[th+'%d' % (maxrow+1)] = k
+            ws[tc+'%d' % i].value = int(v)
+            ws[tk+'%d' % (maxrow+1)].value = "=SUM(E%d:AI%d)-D%d" % (maxrow + 1, maxrow + 1, maxrow + 1)
+            maxrow += 1
+            print("maxrow=%d" % maxrow)
+	# 保存文件
+    wb.save(tf)
+    e = datetime.datetime.now()
+    print(tf + ' saved! spended ' + str((e - s).seconds) + ' seconds.')
+
+# 写入金字统计表EXCEL文件
+# word_dict: 数据字典
+# tf: 目标EXCEL文件名
+# ta: 目标EXCEL标签页名
+# tc: 目标列名（如J），注：只能写入一列
+# isnum: 目标列是否为数值，默认True
+# isout: 售出为True，补货为False（默认）
+def writeInJin(word_dict, tf, ta, tc, isout=False, isnum=True):
+    s = datetime.datetime.now()
+    wb = load_workbook(tf)
+    ws = wb[ta]
+    maxrow = ws.max_row
+    print("maxrow=%d" % maxrow)
+    font = Font(name='微软雅黑', charset=134, family=None, b=False, i=False, strike=None, outline=None, shadow=None,
+                condense=None, color=None, extend=None, sz=12.0, u=None, vertAlign=None, scheme=None)
+    fill = PatternFill("solid", fgColor="FFFF00")  # 设置单元格黄色背景
+    for k, v in word_dict.items():
+        b = 0  # 是否找到
+        for i in range(2, maxrow + 1):
+            c = ws['B%d' % i].value
+            if c.strip() == k:
+                ws['B%d' % i].font = font
+                ws['C%d' % i].fill = fill
+                if isnum:
+                    t = ws[tc + '%d' % i].value
+                    if t:   #如果原来有值则需要累加
+                        ws[tc + '%d' % i].value = -int(v)+t if isout else int(v)+t
+                    else:
+                        ws[tc + '%d' % i].value = -int(v) if isout else int(v)
+                else:
+                    ws[tc + '%d' % i].value = v
+                b = 1
+                break
+        if b == 0:  # 未找到，添加到最后一行
+            ws['B%d' % (maxrow + 1)].font = font
+            ws['C%d' % (maxrow + 1)].fill = fill
+            ws['B%d' % (maxrow + 1)] = k
+            ws['C%d' % (maxrow + 1)].value = "=SUM(E%d:AI%d)-D%d" % (maxrow + 1, maxrow + 1, maxrow + 1)
+            if isnum:
+                ws[tc + '%d' % (maxrow + 1)].value = -int(v) if isout else int(v)
+            else:
+                ws[tc + '%d' % (maxrow + 1)].value = v
+            maxrow += 1
+            print("maxrow=%d" % maxrow)
+    # 保存文件
+    e0 = datetime.datetime.now()
+    print('for spended ' + str((e0 - s).seconds) + ' seconds.')
+    s1 = e0
+    wb.save(tf)
+    e1 = datetime.datetime.now()
+    print('save spended ' + str((e1 - s1).seconds) + ' seconds.')
+    e = datetime.datetime.now()
+    print(tf + ' saved! spended ' + str((e - s).seconds) + ' seconds.')
+
+# 写入铅字统计表EXCEL文件
 # word_dict: 数据字典
 # tf: 目标EXCEL文件名
 # ta: 目标EXCEL标签页名
@@ -24,8 +134,9 @@ def writeIn(word_dict, tf, ta, tc, isout=False, isnum=True):
     ws = wb[ta]
     maxrow = ws.max_row
     print("maxrow=%d" % maxrow)
-    font = Font(name='微软雅黑', charset=134, family=None, b=False, i=False, strike=None, outline=None, shadow=None, condense=None, color=None, extend=None, sz=12.0, u=None, vertAlign=None, scheme=None)
-    fill = PatternFill("solid", fgColor="FFFF00") #设置单元格黄色背景
+    font = Font(name='微软雅黑', charset=134, family=None, b=False, i=False, strike=None, outline=None, shadow=None,
+                condense=None, color=None, extend=None, sz=12.0, u=None, vertAlign=None, scheme=None)
+    fill = PatternFill("solid", fgColor="FFFF00")  # 设置单元格黄色背景
     for k, v in word_dict.items():
         b = 0  # 是否找到
         for i in range(2, maxrow + 1):
@@ -34,11 +145,11 @@ def writeIn(word_dict, tf, ta, tc, isout=False, isnum=True):
                 ws['C%d' % i].font = font
                 ws['D%d' % i].fill = fill
                 if isnum:
-                    k = ws[tc + '%d' % i].value
-                    if k: #如果单元格原来有值需要做累加
-                        ws[tc + '%d' % i].value = -int(v)+k if isout else int(v)+k
+                    t = ws[tc + '%d' % i].value
+                    if t: #如果原来有值则需要累加
+                        ws[tc + '%d' % i].value = -int(v)+t if isout else int(v)+t
                     else:
-                        ws[tc + '%d' % i].value = -int(v) if isout else int(v) 
+                        ws[tc + '%d' % i].value = -int(v) if isout else int(v)
                 else:
                     ws[tc + '%d' % i].value = v
                 b = 1
@@ -52,21 +163,21 @@ def writeIn(word_dict, tf, ta, tc, isout=False, isnum=True):
                 ws[tc + '%d' % (maxrow + 1)].value = -int(v) if isout else int(v)
             else:
                 ws[tc + '%d' % (maxrow + 1)].value = v
-            #新增的字查找陈列盘号并写入B列
-            b,l,c = getposition(k)
-            if b!=1000:
-                ws['B%d' % (maxrow + 1)].value = str(b)+'盘'
+            # 新增的字查找陈列盘号并写入B列
+            b, l, c = getposition(k)
+            if b != 1000:
+                ws['B%d' % (maxrow + 1)].value = str(b) + '盘'
             maxrow += 1
             print("maxrow=%d" % maxrow)
     # 保存文件
     e0 = datetime.datetime.now()
-    print('for spended '+str((e0 - s).seconds)+' seconds.')
+    print('for spended ' + str((e0 - s).seconds) + ' seconds.')
     s1 = e0
     wb.save(tf)
     e1 = datetime.datetime.now()
-    print('save spended '+str((e1 - s1).seconds)+' seconds.')
+    print('save spended ' + str((e1 - s1).seconds) + ' seconds.')
     e = datetime.datetime.now()
-    print(tf+' saved! spended '+str((e - s).seconds)+' seconds.')
+    print(tf + ' saved! spended ' + str((e - s).seconds) + ' seconds.')
 
 
 # 从补货单提取汉字和数量
@@ -82,7 +193,7 @@ def getAdd(f, la, sl, el, sc, ec, st):
     word_dict = {}
     wb2 = load_workbook(f)
     ws2 = wb2[la]
-    
+
     # 读取进货表汉字和数量
     z = 0
     for i in range(ord(sc), ord(ec), st):
@@ -100,10 +211,11 @@ def getAdd(f, la, sl, el, sc, ec, st):
     print(z)
     print(len(word_dict))
     e = datetime.datetime.now()
-    print('获得补货数据,spended '+str((e - s).seconds)+' seconds.')
+    print('获得补货数据,spended ' + str((e - s).seconds) + ' seconds.')
     return word_dict
 
-# 统计售出字频写入统计表
+
+# 统计铅字售出字频写入统计表
 # f: 读入的文本文件
 # tf: 目标EXCEL文件
 # ta: 目标EXCEL文件标签页名
@@ -131,37 +243,38 @@ def getOut(f):
                     word_dict[char] += 1
 
         print(len(word_dict))
-        print(word_dict)
         e = datetime.datetime.now()
-        print('获得售出数据,spended '+str((e - s).seconds)+' seconds.')
+        print('获得售出数据,spended ' + str((e - s).seconds) + ' seconds.')
         return word_dict
+
 
 # 复制生成带时间戳的文件
 def saveFileWithDate(f):
     tf = os.path.splitext(f)[0] + time.strftime('%Y%m%d', time.localtime()) + os.path.splitext(f)[1]
     shutil.copyfile(f, tf)
-    print(tf+' saved.')
+    print(tf + ' saved.')
+
 
 # 读库存盘文件获取{汉字:库存盘号}字典
 # f: 读入的文本文件
 # sp: 分隔符
-def getKucunpan(f,sp):
+def getKucunpan(f, sp):
     s = datetime.datetime.now()
     word_dict = {}
     with open(f, "r", encoding='UTF-8') as fileIn:
         # 添加每一个字到列表中
         for line in fileIn:
             c = line.split(sp)
-            #print(c[0],c[1])
+            # print(c[0],c[1])
             for char in c[1]:
                 if not char == '\xa0' and not char == '\n':
                     word_dict[char] = c[0]
     e = datetime.datetime.now()
-    print('获得库存盘号数据,spended '+str((e - s).seconds)+' seconds.')
+    print('获得库存盘号数据,spended ' + str((e - s).seconds) + ' seconds.')
     return word_dict
 
 
-#获得汉字对应的陈列盘位置
+# 获得汉字对应的陈列盘位置
 # hz: 某个汉字
 def getposition(hz):
     s0 = datetime.datetime.now()
@@ -172,24 +285,26 @@ def getposition(hz):
     m = re.search(r'查询结果：</strong><br>(.*)<br></div>', h)
     m2 = re.match(r'(.*):(.*)盘 (.*)行 (.*)列', m.group(1))
     e = datetime.datetime.now()
-    print('获取汉字陈列盘位置,spended '+str((e - s0).seconds)+' seconds.')
+    print('获取汉字陈列盘位置,spended ' + str((e - s0).seconds) + ' seconds.')
     if m2:
         return int(m2.group(2)), int(m2.group(3)), int(m2.group(4))
     else:
         return 1000, 1000, 1000
 
-def getChenliepan(ws,i,tc):
-    t = ws['C%d' % i].value
-    b,l,c = getposition(t)
-    if b!=1000:
-        ws[tc+'%d' % i].value = str(b)+'盘'
-    print(i,b,t)
 
-#遍历统计表汉字写入其陈列盘
+def getChenliepan(ws, i, tc):
+    t = ws['C%d' % i].value
+    b, l, c = getposition(t)
+    if b != 1000:
+        ws[tc + '%d' % i].value = str(b) + '盘'
+    print(i, b, t)
+
+
+# 遍历统计表汉字写入其陈列盘
 # tf: 目标EXCEL文件
 # ta: 目标EXCEL文件标签页名
 # tc: 陈列盘列名（如B）
-def writeChenliepan(tf,ta,tc):
+def writeChenliepan(tf, ta, tc):
     s = datetime.datetime.now()
     wb = load_workbook(tf)
     ws = wb[ta]
@@ -198,19 +313,20 @@ def writeChenliepan(tf,ta,tc):
 
     for i in range(2, maxrow + 1):
         t = ws['C%d' % i].value
-        b,l,c = getposition(t)
-        if b!=1000:
-            ws[tc+'%d' % i].value = str(b)+'盘'
+        b, l, c = getposition(t)
+        if b != 1000:
+            ws[tc + '%d' % i].value = str(b) + '盘'
 
     e0 = datetime.datetime.now()
-    print('for spended '+str((e0 - s).seconds)+' seconds.')
+    print('for spended ' + str((e0 - s).seconds) + ' seconds.')
     s1 = e0
     # 保存文件
     wb.save(tf)
     e1 = datetime.datetime.now()
-    print('save spended '+str((e1 - s1).seconds)+' seconds.')
+    print('save spended ' + str((e1 - s1).seconds) + ' seconds.')
     e = datetime.datetime.now()
-    print('刷新陈列盘数据：'+tf+' saved,spended '+str((e - s).seconds)+' seconds.')
+    print('刷新陈列盘数据：' + tf + ' saved,spended ' + str((e - s).seconds) + ' seconds.')
+
 
 ##----------------------------------------------------------------------------------------------------------##
 
@@ -218,21 +334,31 @@ starttime = datetime.datetime.now()
 # 铅字补货写入统计表
 #writeIn(getAdd('补货单20191105南京科举博物馆.xlsx', '铅字补字表', 7, 100, 'A', 'J', 2), '1_字盘统计表.xlsx', '字盘统计表', 'K')
 
+# 金字补货写入统计表
+#writeInJin(getAdd('../字在进货/2019.10月进货/南京科举博物馆进货明细10.9-1.xlsx', '金字补字表', 7, 44, 'A', 'I', 3), '1_金字统计表.xlsx', '字盘统计表', 'G')
+#writeInJin(getAdd('../字在进货/2019.10月进货/南京科举博物馆进货明细10.22.xlsx', '金字补字表', 7, 44, 'A', 'F', 3), '1_金字统计表.xlsx', '字盘统计表', 'G')
+#writeInJin(getAdd('../字在进货/2019.11月进货/2019.11.5南京科举博物馆补货单.xlsx', '金字补字表', 7, 44, 'A', 'U', 3), '1_金字统计表.xlsx', '字盘统计表', 'I')
+#writeInJin(getAdd('../字在进货/2019.11月进货/11月金补字.xlsx', '11月金补字', 1, 156, 'A', 'B', 3), '1_金字统计表.xlsx', '字盘统计表', 'I')
+#writeInJin(getAdd('../字在进货/2019.12月进货/南京科举博物馆进货明细10.22.xlsx', '金字补字表', 7, 44, 'A', 'L', 3), '1_金字统计表.xlsx', '字盘统计表', 'K')
+#writeInJin(getAdd('../字在进货/2019.12月进货/南京科举博物馆进货明细10.22.xlsx', '金字补字表 (2)', 7, 44, 'A', 'F', 3), '1_金字统计表.xlsx', '字盘统计表', 'K')
+
 
 # 统计铅字售出字频写入统计表
-writeIn(getOut('11月售出2.txt'), '1_字盘统计表.xlsx', '字盘统计表', 'J', isout=True)
-
+#writeIn(getOut('11月售出.txt'), '1_字盘统计表.xlsx', '字盘统计表', 'J', isout=True)
 
 # 写统计表库存盘
-#writeIn(getKucunpan('11月库存盘.txt','：'),'1_字盘统计表.xlsx','字盘统计表','A', isnum=False)
-
+#writeIn(getKucunpan('11月库存盘.txt', '：'), '1_字盘统计表.xlsx', '字盘统计表', 'A', isnum=False)
 
 # 全量刷新统计表陈列盘
-#writeChenliepan('1_字盘统计表.xlsx','字盘统计表','B')
+#writeChenliepan('1_字盘统计表.xlsx', '字盘统计表', 'B')
+
+# 根据剩余数量反算售出写入统计表
+writeReverse(getMainder('11月金字剩余.txt',','),'1_金字统计表.xlsx','字盘统计表','H','B','C')
 
 
 # 复制生成带时间戳的目标文件
-saveFileWithDate('1_字盘统计表.xlsx')
+#saveFileWithDate('1_字盘统计表.xlsx')
+saveFileWithDate('1_金字统计表.xlsx')
 
 endtime = datetime.datetime.now()
-print('总共花费时间：'+str((endtime - starttime).seconds)+' seconds.')
+print('总共花费时间：' + str((endtime - starttime).seconds) + ' seconds.')
