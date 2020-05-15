@@ -1,7 +1,6 @@
 1. 先安装谷歌浏览器
 
-2. 下载谷歌访问助手并安装，参考
-https://segmentfault.com/a/1190000020548973?utm_source=tag-newest
+2. 下载谷歌访问助手并安装（当前目录下有安装包，解压后通过chrome扩展程序安装）
 
 3. 使用谷歌云端硬盘，可用QQ帐号注册，参考
 http://www.sohu.com/a/332938797_787107
@@ -42,6 +41,7 @@ device_lib.list_local_devices()
 
 
 补充一个重要内容：
+
 8. 在google colab中执行 !nohup python .... &时会报找不到某些python lib的问题，原因是因为nohup中用的python path不一样。
 
 解决方法：
