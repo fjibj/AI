@@ -56,4 +56,14 @@ device_lib.list_local_devices()
 
 输出的日志文件nohup.log可在google colab左边的目录树中找到，下载即可
 
+9. google colab断线自动重连（防止其页面90分钟不操作退出）
+
+打开浏览器F12，找到console将下面代码粘贴到控制台回车即可。若刷新了页面请重新执行上述步骤
+
+setInterval(()=>{
+	if(Array.from(document.getElementById("connect").children[0].children[2].innerHTML).splice(3,4).toString() === '重,新,连,接'){
+		document.getElementById("connect").children[0].children[2].click()
+	}
+},1000)
+
 
