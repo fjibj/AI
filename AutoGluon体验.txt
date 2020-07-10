@@ -1,0 +1,100 @@
+AutoGluonÌåÑé£º
+import autogluon as ag
+from autogluon import TabularPrediction as task
+
+train_data = task.Dataset(file_path='telco-customer-churn.csv')
+train_data = train_data.head(500) # subsample 500 data points for faster demo
+print(train_data.head())
+
+Loaded data from: telco-customer-churn.csv | Columns = 21 / 21 | Rows = 6043 -> 6043
+
+   customerID  gender  SeniorCitizen  ... MonthlyCharges TotalCharges  Churn
+0
+0  8357-EQXFO  Female              0  ...          95.35        660.9    Yes
+1
+1  1989-PRJHP    Male              1  ...          75.50      1893.95    Yes
+2
+2  8120-JDCAM    Male              0  ...          69.55        284.9     No
+3
+3  8917-FAEMR  Female              0  ...          19.85       784.25     No
+4
+4  7047-YXDMZ    Male              0  ...          20.00        417.7     No
+
+
+
+[
+[5 rows x 21 columns]
+
+label_column = 'Churn'
+print("Summary of Churn variable: \n", train_data[label_column].describe())
+
+Summary of Churn variable: 
+count 500 
+unique 2 
+top No 
+freq 360 
+Name: Churn, dtype: object
+
+dir = 'agModels-predictClass' # specifies folder where to store trained models
+predictor = task.fit(train_data=train_data, label=label_column, output_directory=dir)
+
+Beginning AutoGluon training ...
+Preprocessing data ...
+Here are the first 10 unique label values in your data:  ['Yes' 'No']
+AutoGluon infers your prediction problem is: binary  (because only two unique label-values observed)
+If this is wrong, please specify `problem_type` argument in fit() instead (You may specify problem_type as one of: ['binary', 'multiclass', 'regression'])
+
+Selected class <--> label mapping:  class 1 = Yes, class 0 = No
+	Data preprocessing and feature engineering runtime = 0.13s ...
+AutoGluon will gauge predictive performance using evaluation metric: accuracy
+To change this, specify the eval_metric argument of fit()
+Fitting model: RandomForestClassifierGini ...
+	0.51s	 = Training runtime
+	0.86	 = Validation accuracy score
+Fitting model: RandomForestClassifierEntr ...
+	0.61s	 = Training runtime
+	0.85	 = Validation accuracy score
+Fitting model: ExtraTreesClassifierGini ...
+	0.41s	 = Training runtime
+	0.82	 = Validation accuracy score
+Fitting model: ExtraTreesClassifierEntr ...
+	0.42s	 = Training runtime
+	0.84	 = Validation accuracy score
+Fitting model: KNeighborsClassifierUnif ...
+	0.01s	 = Training runtime
+	0.77	 = Validation accuracy score
+Fitting model: KNeighborsClassifierDist ...
+	0.01s	 = Training runtime
+	0.79	 = Validation accuracy score
+Fitting model: LightGBMClassifier ...
+	0.27s	 = Training runtime
+	0.84	 = Validation accuracy score
+Fitting model: CatboostClassifier ...
+	1.77s	 = Training runtime
+	0.86	 = Validation accuracy score
+Fitting model: NeuralNetClassifier ...
+	3.95s	 = Training runtime
+	0.81	 = Validation accuracy score
+Fitting model: LightGBMClassifierCustom ...
+	0.4s	 = Training runtime
+	0.83	 = Validation accuracy score
+Fitting model: weighted_ensemble_l1 ...
+	0.47s	 = Training runtime
+	0.87	 = Validation accuracy score
+AutoGluon training complete, total runtime = 11.02s ...
+
+results = predictor.fit_summary()
+
+*** Summary of fit() ***
+Number of models trained: 11
+Types of models trained: 
+{'LGBModel', 'KNNModel', 'CatboostModel', 'TabularNeuralNetModel', 'WeightedEnsembleModel', 'RFModel'}
+Validation performance of individual models: {'RandomForestClassifierGini': 0.86, 'RandomForestClassifierEntr': 0.85, 'ExtraTreesClassifierGini': 0.82, 'ExtraTreesClassifierEntr': 0.84, 'KNeighborsClassifierUnif': 0.77, 'KNeighborsClassifierDist': 0.79, 'LightGBMClassifier': 0.84, 'CatboostClassifier': 0.86, 'NeuralNetClassifier': 0.81, 'LightGBMClassifierCustom': 0.83, 'weighted_ensemble_l1': 0.87}
+Best model (based on validation performance): weighted_ensemble_l1
+Hyperparameter-tuning used: False
+Bagging used: False 
+Stack-ensembling used: False 
+User-specified hyperparameters:
+{'NN': {'num_epochs': 500}, 'GBM': {'num_boost_round': 10000}, 'CAT': {'iterations': 10000}, 'RF': {'n_estimators': 300}, 'XT': {'n_estimators': 300}, 'KNN': {}, 'custom': ['GBM']}
+Plot summary of models saved to file: SummaryOfModels.html
+*** End of fit() summary ***
