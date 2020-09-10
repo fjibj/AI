@@ -53,13 +53,37 @@ mnist
  
  5. 设置各个环境变更（参考wiki)
  
+ 经验证，对cluster模式只需要设置下面两个环境变量即可：
+ 
+export QUEUE=default 
+
+export HADOOP_CONF_DIR=/etc/hadoop/conf/
+
+ （注：client模式还需要配置以下环境变量
+ 
+export PYTHON_ROOT=/home/yarn/Python \            （本地需要有编译好的Python目录）
+
+export VERSION=3.6.9
+
+export LD_LIBRARY_PATH=${PATH} \
+
+export PYSPARK_PYTHON=${PYTHON_ROOT}/bin/python3 \
+
+export SPARK_YARN_USER_ENV="PYSPARK_PYTHON=Python/bin/python3" \
+
+export PATH=${PYTHON_ROOT}/bin/:$PATH \
+
+export LIB_HDFS=$HADOOP_PREFIX/lib/native/Linux-amd64-64 \
+
+export LIB_JVM=$JAVA_HOME/jre/lib/amd64/server  ）
+
  6. 提交spark-submit命令
  
  /home/yarn/spark-2.4.5-bin-hadoop2.6/bin/spark-submit \
  
 --master yarn \
 
---deploy-mode cluster \
+--deploy-mode cluster \    （如果是client模式，则无须将mnist上传到HDFS,但mnist_data_setup中tfds.load的data_dir需要指向本地mnist目录的上一层目录）
 
 --queue ${QUEUE} \
 
