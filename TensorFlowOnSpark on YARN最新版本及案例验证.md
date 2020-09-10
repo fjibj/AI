@@ -37,13 +37,13 @@ mnist
 
    └── 3.0.1
    
-       ├── dataset_info.json
+             ├── dataset_info.json
        
-       ├── image.image.json
+             ├── image.image.json
        
-       ├── mnist-test.tfrecord-00000-of-00001
+             ├── mnist-test.tfrecord-00000-of-00001
        
-       └── mnist-train.tfrecord-00000-of-00001
+             └── mnist-train.tfrecord-00000-of-00001
        
  hadoop fs -put mnist.zip .  (.表示hdfs:///user/yarn目录，当前用户是yarn)
  
